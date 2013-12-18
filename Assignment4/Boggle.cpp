@@ -40,17 +40,15 @@ const string BIG_BOGGLE_CUBES[25]  = {
    "FIPRSY", "GORRVW", "HIPRRY", "NOOTUW", "OOOTTU"
 };
 
-const int NUM_STANDARD_CUBES = 16;
-const int NUM_BIG_BOGGLE_CUBES = 25;
-
 /* Function prototypes */
 
 void welcome();
 void giveInstructions();
-void play();
-Vector<string> shakeCubes(const string array[]);
-Vector<string> copyArrayIntoVector(const string array[]);
+void play(int boardSize);
+Vector<string> shakeCubes(const string array[], int numCubes);
+Vector<string> copyArrayIntoVector(const string array[], int numCubes);
 void shuffleVector(Vector<string> & vec);
+void selectCubeFace(Vector<string> & cubes);
 Grid<char> placeCubes(Vector<string> & cubes);
 void humanPlayerTurn(Lexicon & boardLexicon);
 void computerPlayerTurn(Lexicon & boardLexicon);
@@ -68,7 +66,15 @@ int main() {
    initGBoggle(gw);
    welcome();
    giveInstructions();
-   play();
+   while (true) {
+       cout << "---BOARD CONFIGURATION---" << endl;
+       cout << "Board size (Press 'B' for Big/any other key for Standard): ";
+       string size;
+       getline(cin, size);
+       int boardSize;
+       (size == "B") ? boardSize = 5 : boardSize = 4;                
+       play(boardSize);
+   }
    cin.get();
    return 0;
 }
@@ -120,9 +126,29 @@ void giveInstructions() {
    getLine();
 }
 
-void play() {
-    drawBoard(sqrt(NUM_STANDARD_CUBES), sqrt(NUM_STANDARD_CUBES));
-    Vector<string> cubes = shakeCubes(STANDARD_CUBES);
+void play(int boardSize) {
+    drawBoard(boardSize, boardSize);
+    cout << "Press 'C' for custom board/any other key for Random board): ";
+    string custom;
+    getline(cin, custom);
+    string customBoard;
+    Vector<string> cubes;
+    if (custom == "C") {
+        while (customBoard.length() < boardSize * boardSize) {
+            cout << "Please enter string of cube faces (characters must be"
+                 << "greater than or equal to the number of cubes on the board): ";
+            getline(cin, customBoard);
+        }
+        for (int i = 0; i < boardSize * boardSize; i++) {
+            cubes.add(customBoard.substr(i, i + 1));
+        }
+    } else if (boardSize == 4) {
+        cubes = shakeCubes(STANDARD_CUBES, boardSize * boardSize);
+        selectCubeFace(cubes);
+    } else {
+        cubes = shakeCubes(BIG_BOGGLE_CUBES, boardSize * boardSize);
+        selectCubeFace(cubes);
+    }        
     Grid<char> boardGrid = placeCubes(cubes);
     Lexicon boardLexicon;
     findWordsOnBoard(boardGrid, boardLexicon);
@@ -130,15 +156,15 @@ void play() {
     computerPlayerTurn(boardLexicon);
 }
 
-Vector<string> shakeCubes(const string array[]) {
-    Vector<string> shakenVec = copyArrayIntoVector(array);
+Vector<string> shakeCubes(const string array[], int numCubes) {
+    Vector<string> shakenVec = copyArrayIntoVector(array, numCubes);
     shuffleVector(shakenVec);
     return shakenVec;
 }
 
-Vector<string> copyArrayIntoVector(const string array[]) {
+Vector<string> copyArrayIntoVector(const string array[], int numCubes) {
     Vector<string> vecCopy;
-    for (int i = 0; i < NUM_STANDARD_CUBES; i++) {
+    for (int i = 0; i < numCubes; i++) {
         vecCopy.add(array[i]);
     }
     return vecCopy;
@@ -153,13 +179,23 @@ void shuffleVector(Vector<string> & vec) {
     }
 }
 
+void selectCubeFace(Vector<string> & cubes) {
+    for (int i = 0; i < cubes.size(); i++) {
+        string cube = cubes[i];
+        int index = randomInteger(0, cube.length() - 1);
+        string cubeFace = cube.substr(index, index + 1);
+        cubes[i] = cubeFace;
+    }
+}
+
 Grid<char> placeCubes(Vector<string> & cubes) {
     int index = 0;
-    Grid<char> boardGrid(sqrt(NUM_STANDARD_CUBES), sqrt(NUM_STANDARD_CUBES));
-    for (int row = 0; row < sqrt(NUM_STANDARD_CUBES); row++) {
-        for (int col = 0; col < sqrt(NUM_STANDARD_CUBES); col++) {
-            string cube = cubes[index++];            
-            char cubeFace = cube[randomInteger(0, cube.length() - 1)];
+    Grid<char> boardGrid(sqrt(cubes.size()), sqrt(cubes.size()));
+    for (int row = 0; row < sqrt(cubes.size()); row++) {
+        for (int col = 0; col < sqrt(cubes.size()); col++) {
+            //string cube = cubes[index++];            
+            //char cubeFace = cube[randomInteger(0, cube.length() - 1)];
+            char cubeFace = cubes[index++][0];
             labelCube(row, col, cubeFace);
             boardGrid[row][col] = cubeFace;
         }
