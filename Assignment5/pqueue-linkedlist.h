@@ -49,7 +49,6 @@ private:
     
     // Instance variables
     Cell *head;                         // Pointer to the head cell
-    Cell *tail;                         // Pointer to the tail cell
     int count;                          // Number of elements in queue
     
     // Private  
