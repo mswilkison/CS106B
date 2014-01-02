@@ -115,7 +115,7 @@ void encodeFile(istream& infile, Node* encodingTree, obstream& outfile) {
     writeBits(outfile, bitMap.get(PSEUDO_EOF));
 }
 
-/* Function: decodeFile
+/* Function: decodeFile 
  * Usage: decodeFile(encodedFile, encodingTree, resultFile);
  * --------------------------------------------------------
  * Decodes a file that has previously been encoded using the
@@ -247,7 +247,12 @@ Map<ext_char, int> readFileHeader(ibstream& infile) {
  * primarily be glue code.
  */
 void compress(ibstream& infile, obstream& outfile) {
-	// TODO: Implement this!
+    Map<ext_char, int> frequencyTable = getFrequencyTable(infile);
+    infile.rewind();
+    writeFileHeader(outfile, frequencyTable);
+    Node *encodingTree = buildEncodingTree(frequencyTable);    
+    encodeFile(infile, encodingTree, outfile);
+    freeTree(encodingTree);
 }
 
 /* Function: decompress
@@ -263,7 +268,10 @@ void compress(ibstream& infile, obstream& outfile) {
  * primarily be glue code.
  */
 void decompress(ibstream& infile, ostream& outfile) {
-	// TODO: Implement this!
+    Map<ext_char, int> frequencyTable = readFileHeader(infile);
+    Node *encodingTree = buildEncodingTree(frequencyTable);
+    decodeFile(infile, encodingTree, outfile);
+    freeTree(encodingTree);
 }
 
 void populateBitMap(Node* encodingTree, Map<ext_char, string>& bitMap, string bits) {
