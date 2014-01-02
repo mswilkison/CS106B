@@ -142,4 +142,17 @@ void compress(ibstream& infile, obstream& outfile);
  */
 void decompress(ibstream& infile, ostream& outfile);
 
+/*
+ * This private helper function creates a map out of the provided encodingTree
+ * with the leaves as the keys and the corresponding bit string as the value.
+ */
+void populateBitMap(Node* encodingTree, Map<ext_char, string>& bitMap, string bits);
+
+/*
+ * Convenience function for iterating over bitString and writing individual
+ * bit to outfile.
+ */
+void writeBits(obstream& outfile, string bitString);
+
+
 #endif

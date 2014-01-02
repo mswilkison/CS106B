@@ -8,6 +8,7 @@
 
 #include "HuffmanEncoding.h"
 #include "pqueue.h"
+#include "strlib.h"
 
 /* Function: getFrequencyTable
  * Usage: Map<ext_char, int> freq = getFrequencyTable(file);
@@ -104,7 +105,14 @@ void freeTree(Node* root) {
  *     without seeking the file anywhere.
  */ 
 void encodeFile(istream& infile, Node* encodingTree, obstream& outfile) {
-	// TODO: Implement this!
+    ext_char key;
+    Map<ext_char, string> bitMap;
+    populateBitMap(encodingTree, bitMap, "");
+    while((key = infile.get()) != EOF) {
+        string bitString = bitMap.get(key);
+        writeBits(outfile, bitString);
+    }
+    writeBits(outfile, bitMap.get(PSEUDO_EOF));
 }
 
 /* Function: decodeFile
@@ -120,7 +128,16 @@ void encodeFile(istream& infile, Node* encodingTree, obstream& outfile) {
  *   - The output file is open and ready for writing.
  */
 void decodeFile(ibstream& infile, Node* encodingTree, ostream& file) {
-	// TODO: Implement this!
+    Node *link = encodingTree;
+    while (link->character != PSEUDO_EOF) {
+        if(link->character == NOT_A_CHAR) {
+            int bit = infile.readBit();
+            (bit == 0) ? (link = link->zero) : (link = link->one);
+        } else {
+            file.put(link->character);
+            link = encodingTree;
+        }        
+    }
 }
 
 /* Function: writeFileHeader
@@ -249,3 +266,17 @@ void decompress(ibstream& infile, ostream& outfile) {
 	// TODO: Implement this!
 }
 
+void populateBitMap(Node* encodingTree, Map<ext_char, string>& bitMap, string bits) {
+    if (encodingTree->character != NOT_A_CHAR) {
+        bitMap.put(encodingTree->character, bits);
+    } else {
+        populateBitMap(encodingTree->zero, bitMap, bits + '0');
+        populateBitMap(encodingTree->one, bitMap, bits + '1');
+    }
+}
+
+void writeBits(obstream& outfile, string bitString) {
+    for (int i = 0; i < bitString.length(); i++) {
+        outfile.writeBit(bitString[i] - '0');
+    }    
+}
