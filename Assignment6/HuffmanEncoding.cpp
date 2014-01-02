@@ -7,6 +7,7 @@
  */
 
 #include "HuffmanEncoding.h"
+#include "pqueue.h"
 
 /* Function: getFrequencyTable
  * Usage: Map<ext_char, int> freq = getFrequencyTable(file);
@@ -44,9 +45,30 @@ Map<ext_char, int> getFrequencyTable(istream& file) {
  * be present.
  */
 Node* buildEncodingTree(Map<ext_char, int>& frequencies) {
-	// TODO: Implement this!
-	
-	return NULL;
+    PriorityQueue<Node*> pq;
+    // Create collection of singleton trees
+    foreach (ext_char key in frequencies) {
+        Node *singleton = new Node;
+        singleton->character = key;
+        singleton->zero = NULL;
+        singleton->one = NULL;
+        singleton->weight = frequencies[key];
+        pq.enqueue(singleton, singleton->weight);
+    }
+
+    // Combine subtrees into one tree
+    while (pq.size() > 1) {
+        Node *min1 = pq.dequeue();
+        Node *min2 = pq.dequeue();
+        Node *combo = new Node;
+        combo->character = NOT_A_CHAR;
+        combo->zero = min1;
+        combo->one = min2;
+        combo->weight = min1->weight + min2->weight;
+        pq.enqueue(combo, combo->weight);
+    }
+    
+    return pq.dequeue();
 }
 
 /* Function: freeTree
@@ -56,7 +78,11 @@ Node* buildEncodingTree(Map<ext_char, int>& frequencies) {
  * tree.
  */
 void freeTree(Node* root) {
-	// TODO: Implement this!
+    if (root != NULL) {
+        freeTree(root->zero);
+        freeTree(root->one);
+        delete root;
+    } 
 }
 
 /* Function: encodeFile
