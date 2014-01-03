@@ -27,9 +27,8 @@ using namespace std;
  */
 Vector<Loc>
 shortestPath(Loc start, Loc end, Grid<double>& world,
-             double costFn(Loc from, Loc to, Grid<double>& world)) {
-    cout << "START: (" << start.col << ", " << start.row << ")" << endl;
-    cout << "END:   (" << end.col << ", " << end.row << ")" << endl;
+             double costFn(Loc from, Loc to, Grid<double>& world),
+             double heuristic(Loc start, Loc end, Grid<double>& world)) {
     Map<Loc, Node*> visited;
     TrailblazerPQueue<Loc> tpq;
     Node *startNode = new Node;
@@ -38,7 +37,7 @@ shortestPath(Loc start, Loc end, Grid<double>& world,
     startNode->distance = 0;
     colorCell(world, start, YELLOW);
     visited.put(start, startNode);
-    tpq.enqueue(start, startNode->distance);
+    tpq.enqueue(start, heuristic(start, end, world));
     while (!tpq.isEmpty()) {
         Loc currLoc = tpq.dequeueMin();
         Node *currNode = visited.get(currLoc);
@@ -73,14 +72,14 @@ shortestPath(Loc start, Loc end, Grid<double>& world,
                         v->parent = currNode;                       
                         v->distance = candidateDistance;
                         visited.put(offset, v);
-                        tpq.enqueue(offset, candidateDistance);
+                        tpq.enqueue(offset, candidateDistance + heuristic(offset, end, world));
                     } else if (currNode->distance + length < visited.get(offset)->distance) {
                         Node *v = visited.get(offset);
                         v->location = offset;
                         v->parent = currNode;                       
                         v->distance = candidateDistance;
                         visited.put(offset, v);
-                        tpq.decreaseKey(offset, candidateDistance);
+                        tpq.decreaseKey(offset, candidateDistance + heuristic(offset, end, world));
                     }
                 }
             }

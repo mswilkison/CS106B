@@ -30,7 +30,8 @@ Vector<Loc>
 shortestPath(Loc start,
              Loc end,
              Grid<double>& world,
-             double costFn(Loc from, Loc to, Grid<double>& world));
+             double costFn(Loc from, Loc to, Grid<double>& world),
+             double heuristic(Loc start, Loc end, Grid<double>& world));
 
 /* Function: createMaze
  * 
