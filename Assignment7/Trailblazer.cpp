@@ -28,8 +28,64 @@ using namespace std;
 Vector<Loc>
 shortestPath(Loc start, Loc end, Grid<double>& world,
              double costFn(Loc from, Loc to, Grid<double>& world)) {
-	// TODO: Fill this in!
-	error("shortestPath is not implemented yet.");
+    cout << "START: (" << start.col << ", " << start.row << ")" << endl;
+    cout << "END:   (" << end.col << ", " << end.row << ")" << endl;
+    Map<Loc, Node*> visited;
+    TrailblazerPQueue<Loc> tpq;
+    Node *startNode = new Node;
+    startNode->parent = NULL;
+    startNode->location = start;
+    startNode->distance = 0;
+    colorCell(world, start, YELLOW);
+    visited.put(start, startNode);
+    tpq.enqueue(start, startNode->distance);
+    while (!tpq.isEmpty()) {
+        Loc currLoc = tpq.dequeueMin();
+        Node *currNode = visited.get(currLoc);
+        colorCell(world, currLoc, GREEN);
+        
+        if (currNode->location == end) {
+            Stack<Loc> pathStack;
+            Vector<Loc> path;
+            Node *step = currNode;
+            pathStack.push(currLoc);
+            while ((step = step->parent) != NULL) {
+                pathStack.push(step->location);
+            }
+            while (!pathStack.isEmpty()) {
+                path.add(pathStack.pop());
+            }
+            return path;
+        }
+        
+        for (int rowOffset = -1; rowOffset <= 1; rowOffset++) {
+            for (int colOffset = -1; colOffset <= 1; colOffset++) {
+                Loc offset;
+                offset.row = currLoc.row + rowOffset;
+                offset.col = currLoc.col + colOffset;
+                if (world.inBounds(offset.row, offset.col)) {
+                    double length = costFn(currLoc, offset, world);
+                    double candidateDistance = currNode->distance + length;
+                    if (!visited.containsKey(offset)) {
+                        colorCell(world, offset, YELLOW);
+                        Node *v = new Node;
+                        v->location = offset;
+                        v->parent = currNode;                       
+                        v->distance = candidateDistance;
+                        visited.put(offset, v);
+                        tpq.enqueue(offset, candidateDistance);
+                    } else if (currNode->distance + length < visited.get(offset)->distance) {
+                        Node *v = visited.get(offset);
+                        v->location = offset;
+                        v->parent = currNode;                       
+                        v->distance = candidateDistance;
+                        visited.put(offset, v);
+                        tpq.decreaseKey(offset, candidateDistance);
+                    }
+                }
+            }
+        }
+    }
 }
 
 Set<Edge> createMaze(int numRows, int numCols) {

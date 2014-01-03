@@ -44,4 +44,17 @@ shortestPath(Loc start,
  */
 Set<Edge> createMaze(int numRows, int numCols);
 
+/* Type: Struct
+ * 
+ * A type representing each node in the world, includes the Loc, Color, and
+ * candidate distance.
+ */
+struct Node {
+    Loc location;
+    double distance;
+    Node *parent;
+};
+
+
+
 #endif
