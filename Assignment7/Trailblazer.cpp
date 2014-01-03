@@ -9,6 +9,8 @@
 #include "TrailblazerGraphics.h"
 #include "TrailblazerTypes.h"
 #include "TrailblazerPQueue.h"
+#include "pqueue.h"
+#include "random.h"
 using namespace std;
 
 /* Function: shortestPath
@@ -88,6 +90,49 @@ shortestPath(Loc start, Loc end, Grid<double>& world,
 }
 
 Set<Edge> createMaze(int numRows, int numCols) {
-	// TODO: Fill this in!
-	error("createMaze is not implemented yet.");
+    Vector<Loc> nodes;
+    Grid<bool> world(numRows, numCols);
+    PriorityQueue<Edge> pq;
+    Set<Edge> edges;
+    Map< Loc, Set<Loc> > clusterMap;
+    
+    /* Create Loc nodes */
+    for (int col = 0; col < numCols; col++) {
+        for (int row = 0; row < numRows; row++) {
+            Loc node = makeLoc(row, col);
+            Set<Loc> initSet;
+            initSet.add(node);
+            nodes.add(node);
+            clusterMap.put(node, initSet);
+        }
+    }
+    
+    /* Enqueue edges with random priority */
+    for (int i = 0; i < nodes.size(); i++) {
+        Vector<Loc> neighbors;
+        neighbors.add(makeLoc(nodes[i].row, nodes[i].col - 1)); // left offset
+        neighbors.add(makeLoc(nodes[i].row, nodes[i].col + 1)); // right offset
+        neighbors.add(makeLoc(nodes[i].row - 1, nodes[i].col)); // up offset
+        neighbors.add(makeLoc(nodes[i].row + 1, nodes[i].col)); // down offset
+        foreach (Loc offset in neighbors) {
+            if (world.inBounds(offset.row, offset.col)) {
+                Edge e = makeEdge(nodes[i], offset);
+                pq.enqueue(e, randomReal(0, 1));
+            }
+        }
+    }
+    
+    /* Create clusters */
+    while (!pq.isEmpty()) {        
+        Edge path = pq.dequeue();
+        if (clusterMap[path.start] != clusterMap[path.end]) {
+            clusterMap[path.start] += clusterMap[path.end];
+            clusterMap[path.end] += clusterMap[path.start];
+            foreach (Loc node in clusterMap[path.start]) {
+                clusterMap[node] += clusterMap[path.end];
+            }
+            edges.add(path);
+        }
+    }
+    return edges;    
 }
